@@ -1,18 +1,29 @@
-from fastapi import FastAPI ,Depends
+from fastapi import FastAPI ,Depends, HTTPException
 from typing import Annotated
 from type import QueryParametrs
+from app.routing import todo
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-@app.post("/todo")
-def addPost(item: dict):
-    return {"message": f"Hello Fast Api {item}"}
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    errors = {}
+    for error in exc.errors():
+       errors[error['loc'][-1]] = error['msg']
 
-@app.get("/{id}")
-def root(id:int):
-    return {"message": f"Hello Fast Api {id}"}
 
-"""Quey Parametrs"""
-@app.get("/")
-def getPost(params: Annotated[QueryParametrs, Depends()]):
-    return {"message": f"Hello Fast Api {params.name} and age is {params.age}"}
+       return JSONResponse(
+           {
+               "message": "Validation Error",
+               "errors": errors,  
+               "status_code": 422 ,
+           }
+       )
+    
+
+
+
+app.include_router(todo.router)
+
