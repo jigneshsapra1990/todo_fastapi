@@ -1,11 +1,6 @@
-from fastapi import FastAPI
+from app.app import app
 
-app = FastAPI()
-
-@app.get("/{id}")
-def root(id:int):
-    return {"message": f"Hello Fast Api {id}"}
-
-@app.post("/todo")
-def addPost(item: dict):
-    return {"message": f"Hello Fast Api {item}"}
+if __name__ == "__main__":
+   
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8000)
