@@ -4,6 +4,10 @@ from type import QueryParametrs
 from app.routing import todo
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
+import os
+from app.config.app_config import AppConfig
+load_dotenv()
 
 app = FastAPI()
 
@@ -11,16 +15,15 @@ app = FastAPI()
 async def validation_exception_handler(request, exc):
     errors = {}
     for error in exc.errors():
-       errors[error['loc'][-1]] = error['msg']
+        errors[error['loc'][-1]] = error['msg']
 
-
-       return JSONResponse(
-           {
-               "message": "Validation Error",
-               "errors": errors,  
-               "status_code": 422 ,
-           }
-       )
+    return JSONResponse(
+        {
+            "message": "Validation Error",
+            "errors": errors,
+            "status_code": 422,
+        }
+    )
     
 
 
