@@ -1,21 +1,33 @@
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter, Depends
 from typing import Annotated
-from type import QueryParametrs
+from sqlalchemy.orm import Session
+from app.database.db import get_db
 from app.models.todo import CreateTodo
+from app.controller import todo as todo_controller
+
+router = APIRouter(prefix="/todo", tags=["Todo"])
 
 
-router = APIRouter(prefix="/todo",tags=["Todo"])
+@router.get("/")
+def get_todos(db: Annotated[Session, Depends(get_db)]):
+    return todo_controller.get_all_todos(db)
+
+
+@router.get("/{id}")
+def get_todo(id: int, db: Annotated[Session, Depends(get_db)]):
+    return todo_controller.get_todo_by_id(id, db)
 
 
 @router.post("/")
-def addTodo(item: CreateTodo):
-    return {"message": f"Hello Fast Api {item}"}
+def add_todo(item: CreateTodo, db: Annotated[Session, Depends(get_db)]):
+    return todo_controller.create_todo(item, db)
 
-"""Quey Parametrs"""
-@router.get("/")
-def getPost(params: Annotated[QueryParametrs, Depends()]):
-    return {"message": f"Hello Fast Api {params.name} and age is {params.age}"}
 
-@router.get("/{id}")
-def root(id:int):
-    return {"message": f"Hello Fast Api {id}"}
+@router.put("/{id}")
+def update_todo(id: int, item: CreateTodo, db: Annotated[Session, Depends(get_db)]):
+    return todo_controller.update_todo(id, item, db)
+
+
+@router.delete("/{id}")
+def delete_todo(id: int, db: Annotated[Session, Depends(get_db)]):
+    return todo_controller.delete_todo(id, db)

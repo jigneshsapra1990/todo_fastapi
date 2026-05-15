@@ -57,3 +57,28 @@ uv run alembic current
 ```bash
 uv run alembic history
 ```
+
+## Downgrade to a specific revision
+```bash
+uv run alembic downgrade <revision_id>
+```
+
+## Upgrade to a specific revision
+```bash
+uv run alembic upgrade <revision_id>
+```
+
+## Show pending migrations
+```bash
+uv run alembic heads
+```
+
+## Show migration SQL without applying
+```bash
+uv run alembic upgrade head --sql
+```
+
+## Stamp the database with a revision (without running migrations)
+```bash
+uv run alembic stamp <revision_id>
+```
