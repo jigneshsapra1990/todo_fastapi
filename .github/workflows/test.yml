@@ -45,7 +45,7 @@ jobs:
 
       - name: Run migrations
         run: |
-          python -m alembic upgrade head
+          $(python -c "import sys; print(sys.prefix)")/bin/alembic upgrade head
 
       - name: Run tests
         run: |
