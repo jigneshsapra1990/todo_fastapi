@@ -91,3 +91,82 @@ def test_delete_todo_then_get():
     client.delete(f"/todo/{todo_id}")
     r = client.get(f"/todo/{todo_id}")
     assert r.status_code == 404
+
+
+# ── AUTH REGISTER ─────────────────────────────────────────────────────────────
+
+def test_register():
+    import time
+    email = f"john_{int(time.time())}@example.com"
+    r = client.post("/auth/register", json={"name": "John Doe", "email": email, "password": "password123", "confirm_password": "password123"})
+    assert r.status_code == 200
+    assert r.json()["message"] == "User registered successfully"
+    assert "access_token" in r.json()["data"]
+
+def test_register_duplicate_email():
+    client.post("/auth/register", json={"name": "John Doe", "email": "duplicate@example.com", "password": "password123", "confirm_password": "password123"})
+    r = client.post("/auth/register", json={"name": "John Doe", "email": "duplicate@example.com", "password": "password123", "confirm_password": "password123"})
+    assert r.status_code == 400
+    assert r.json()["detail"] == "Email already registered"
+
+def test_register_password_mismatch():
+    r = client.post("/auth/register", json={"name": "John Doe", "email": "john2@example.com", "password": "password123", "confirm_password": "wrongpass"})
+    assert r.status_code == 422
+
+def test_register_invalid_email():
+    r = client.post("/auth/register", json={"name": "John Doe", "email": "not-an-email", "password": "password123", "confirm_password": "password123"})
+    assert r.status_code == 422
+
+def test_register_name_too_short():
+    r = client.post("/auth/register", json={"name": "Jo", "email": "john3@example.com", "password": "password123", "confirm_password": "password123"})
+    assert r.status_code == 422
+
+def test_register_missing_fields():
+    r = client.post("/auth/register", json={"email": "john4@example.com"})
+    assert r.status_code == 422
+
+
+# ── AUTH LOGIN ────────────────────────────────────────────────────────────────
+
+def test_login():
+    client.post("/auth/register", json={"name": "Login User", "email": "login@example.com", "password": "password123", "confirm_password": "password123"})
+    r = client.post("/auth/login", json={"email": "login@example.com", "password": "password123"})
+    assert r.status_code == 200
+    assert r.json()["message"] == "Login successful"
+    assert "access_token" in r.json()["data"]
+
+def test_login_wrong_password():
+    client.post("/auth/register", json={"name": "Login User", "email": "login_wp@example.com", "password": "password123", "confirm_password": "password123"})
+    r = client.post("/auth/login", json={"email": "login_wp@example.com", "password": "wrongpassword"})
+    assert r.status_code == 401
+    assert r.json()["detail"] == "Invalid email or password"
+
+def test_login_wrong_email():
+    r = client.post("/auth/login", json={"email": "notexist@example.com", "password": "password123"})
+    assert r.status_code == 401
+
+def test_login_missing_fields():
+    r = client.post("/auth/login", json={"email": "login@example.com"})
+    assert r.status_code == 422
+
+
+# ── AUTH ME ───────────────────────────────────────────────────────────────────
+
+def test_is_authenticated():
+    import time
+    email = f"me_{int(time.time())}@example.com"
+    r = client.post("/auth/register", json={"name": "Me User", "email": email, "password": "password123", "confirm_password": "password123"})
+    token = r.json()["data"]["access_token"]
+    r = client.get("/auth/me", headers={"Authorization": token})
+    assert r.status_code == 200
+    assert r.json()["message"] == "User is authenticated"
+    assert r.json()["data"]["email"] == email
+
+def test_is_authenticated_invalid_token():
+    r = client.get("/auth/me", headers={"Authorization": "Bearer invalidtoken"})
+    assert r.status_code == 401
+    assert r.json()["detail"] == "Invalid or expired token"
+
+def test_is_authenticated_missing_token():
+    r = client.get("/auth/me")
+    assert r.status_code == 422

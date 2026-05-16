@@ -44,6 +44,17 @@ def register(data: Register, db: Session):
     }
 
 
+def user_login(data: Login, db: Session):
+    user = db.query(UserSchema).filter(UserSchema.email == data.email).first()
+    if not user or not verify_password(data.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    token = create_access_token({"sub": str(user.id), "email": user.email})
+    return {
+        "message": "Login successful",
+        "data": {"id": user.id, "name": user.name, "email": user.email, "access_token": f"Bearer {token}"}
+    }
+
+
 def is_authenticated(token: str, db: Session):
     try:
         token = token.replace("Bearer ", "")
@@ -55,19 +66,7 @@ def is_authenticated(token: str, db: Session):
             "message": "User is authenticated",
             "data": {"id": user.id, "name": user.name, "email": user.email}
         }
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-    user = db.query(UserSchema).filter(UserSchema.email == data.email).first()
-    if not user or not verify_password(data.password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token({"sub": str(user.id), "email": user.email})
-    return {
-        "message": "Login successful",
-        "data": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "access_token": f"Bearer {token}"
-        }
-    }

@@ -15,7 +15,7 @@ def register(data: Register, db: Annotated[Session, Depends(get_db)]):
 
 @router.post("/login")
 def login(data: Login, db: Annotated[Session, Depends(get_db)]):
-    return auth_controller.login(data, db)
+    return auth_controller.user_login(data, db)
 
 
 @router.get("/me")
