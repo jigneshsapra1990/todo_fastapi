@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from typing import Annotated
 from sqlalchemy.orm import Session
 from app.database.db import get_db
@@ -16,3 +16,8 @@ def register(data: Register, db: Annotated[Session, Depends(get_db)]):
 @router.post("/login")
 def login(data: Login, db: Annotated[Session, Depends(get_db)]):
     return auth_controller.login(data, db)
+
+
+@router.get("/me")
+def is_authenticated(db: Annotated[Session, Depends(get_db)], authorization: Annotated[str, Header()]):
+    return auth_controller.is_authenticated(authorization, db)

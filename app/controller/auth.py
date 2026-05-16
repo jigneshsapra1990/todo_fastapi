@@ -44,7 +44,20 @@ def register(data: Register, db: Session):
     }
 
 
-def login(data: Login, db: Session):
+def is_authenticated(token: str, db: Session):
+    try:
+        token = token.replace("Bearer ", "")
+        payload = jwt.decode(token, getAppConfig().secret_key, algorithms=[ALGORITHM])
+        user = db.query(UserSchema).filter(UserSchema.id == int(payload["sub"])).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return {
+            "message": "User is authenticated",
+            "data": {"id": user.id, "name": user.name, "email": user.email}
+        }
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
     user = db.query(UserSchema).filter(UserSchema.email == data.email).first()
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
