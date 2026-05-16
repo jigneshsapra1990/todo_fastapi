@@ -7,6 +7,7 @@ class AppConfig(BaseSettings):
     app_name: str = "FASTAPI TODO APP"
     app_env: str = "development"
     app_debug: bool = True
+    secret_key: str = "secret"
 
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

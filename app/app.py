@@ -1,7 +1,7 @@
 from fastapi import FastAPI ,Depends, HTTPException
 from typing import Annotated
 from type import QueryParametrs
-from app.routing import todo
+from app.routing import todo, auth
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
@@ -29,4 +29,5 @@ async def validation_exception_handler(request, exc):
 
 
 app.include_router(todo.router)
+app.include_router(auth.router)
 
