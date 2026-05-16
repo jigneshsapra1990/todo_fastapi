@@ -18,10 +18,10 @@ async def validation_exception_handler(request, exc):
         errors[error['loc'][-1]] = error['msg']
 
     return JSONResponse(
-        {
+        status_code=422,
+        content={
             "message": "Validation Error",
             "errors": errors,
-            "status_code": 422,
         }
     )
     
